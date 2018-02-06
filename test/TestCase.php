@@ -13,5 +13,8 @@ use Shein\Entity;
 
 class TestCase extends Entity
 {
-    public $fdas = null;
+    public function __construct()
+    {
+        parent::__construct();
+    }
 }

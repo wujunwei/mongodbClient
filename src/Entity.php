@@ -18,6 +18,11 @@ use MongoDB\BSON\Persistable;
 class Entity implements Persistable
 {
 
+    public function __construct()
+    {
+        $this->_id = new ObjectId();
+    }
+
     /**
      * Provides an array or document to serialize as BSON
      * Called during serialization of the object to BSON. The method must return an array or stdClass.
@@ -43,9 +48,6 @@ class Entity implements Persistable
     {
         foreach($data as $key => $value){
             $this->$key = $value;
-        }
-        if (!property_exists($this, '_id')){
-            $this->_id = new ObjectId();
         }
     }
 

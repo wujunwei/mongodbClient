@@ -14,12 +14,14 @@ use MongoDB\Collection;
 
 class Connection
 {
+    const DESC = -1;
+    const ASC = 1;
+
     /**
      * @var Collection
      */
     private $collection;
-    const DESC = -1;
-    const ASC = 1;
+
     private $condition = [];
     private $queryOption = [];
     /**

@@ -9,11 +9,38 @@
 namespace Shein;
 
 
+use MongoDB\DeleteResult;
+use MongoDB\InsertOneResult;
+use MongoDB\UpdateResult;
+
 interface EntityHandle
 {
-    public function find();
-    public function remove();
-    public function merge();
-    public function persist();
+    /**
+     * @param Entity $entity
+     * @return Entity[]|Entity
+     */
+    public function find(Entity $entity);
+
+    /**
+     * @param Entity $entity
+     * @return bool
+     */
+    public function remove(Entity $entity);
+
+    /**
+     * @param Entity $entity
+     * @return bool
+     */
+    public function merge(Entity $entity);
+
+    /**
+     * @param Entity $entity
+     * @return bool
+     */
+    public function persist(Entity $entity);
+
+    /**
+     * @return DeleteResult|InsertOneResult|UpdateResult
+     */
     public function flush();
 }
