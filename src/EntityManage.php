@@ -18,7 +18,6 @@ class EntityManage
     public function __construct(MongoDBClient $client)
     {
         $this->client = $client;
-
     }
 
 }

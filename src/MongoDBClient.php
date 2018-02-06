@@ -9,31 +9,23 @@
 namespace Shein;
 
 
-use MongoDB\BSON\ObjectID;
+
 use MongoDB\Client;
-use MongoDB\Collection;
 use MongoDB\Database;
-use MongoDB\InsertManyResult;
-use MongoDB\InsertOneResult;
+
 
 class MongoDBClient
 {
-    const DESC = -1;
-    const ASC = 1;
+
     /**
      * @var Database
      */
     private $database = null;
     /**
-     * @var Collection
+     * @var
      */
-    private $collection = null;
-    private $condition = [];
-    private $queryOption = [];
-    /**
-     * @var InsertOneResult|InsertManyResult
-     */
-    private $lastInsertResult = null;
+    private $connection = null;
+
 
     /**
      * MongoDBClient constructor.
@@ -44,7 +36,7 @@ class MongoDBClient
      */
     public function __construct($dsn, $database, $uriOptions = [], $driverOptions = [])
     {
-        if (empty($driverOptions)){
+        if (!isset($driverOptions['typeMap'])){
             $driverOptions = ['typeMap' => ['root' => 'array']];
         }
         $client = new Client($dsn, $uriOptions, $driverOptions);
@@ -53,132 +45,33 @@ class MongoDBClient
 
     /**
      * @param string $collection
-     * @return MongoDBClient
+     * @return null|Connection
      */
-    public function selectCollection($collection = '')
+    public function getCollection($collection = '')
     {
-        $this->initQueryCondition();
-        $this->collection = $this->database->selectCollection($collection);
-        return $this;
+        $this->connection = new Connection($this->database->selectCollection($collection));
+        return $this->connection;
     }
 
     /**
-     * @param string $field
-     * @param int $order
-     * @return $this
+     * @return string
      */
-    public function orderBy($field = '', $order = self::DESC){
-        $this->queryOption['sort'] = [$field => $order];
-        return $this;
+    public function getDatabaseName()
+    {
+        return $this->database->getDatabaseName();
     }
 
     /**
-     * @param $start
-     * @param $offset
-     * @return $this
-     */
-    public function limit($start = 0, $offset = 1)
-    {
-        $this->queryOption['limit'] = intval($offset);
-        $this->queryOption['skip'] = intval($start);
-        return $this;
-    }
-
-    /**
-     * @param $field
-     * @param $condition
-     * @return $this
-     */
-    public function where($field, $condition)
-    {
-        if ($field === '_id' && !is_array($condition)){
-            $condition = new ObjectID(strval($condition));
-        }
-        $this->condition[$field] = $condition;
-        return $this;
-    }
-
-    private function initQueryCondition()
-    {
-        $this->condition = [];
-        $this->queryOption = [];
-    }
-
-    /**
-     * @param bool $isNeedArray
-     * @return array|\MongoDB\Driver\Cursor
-     */
-    public function findAll($isNeedArray = true)
-    {
-        $result = $this->collection->find($this->condition, $this->queryOption);
-        $this->initQueryCondition();
-        if ($isNeedArray){
-            return $result->toArray();
-        }else{
-            return $result;
-        }
-    }
-
-    /**
-     * @return array|\MongoDB\Driver\Cursor
-     */
-    public function findOne()
-    {
-        $result = $this->collection->findOne($this->condition, $this->queryOption);
-        $this->initQueryCondition();
-        return $result;
-    }
-//todo 将所有操作opt数组做成配置
-    public function insertOne($document, $opt = [])
-    {
-        $this->lastInsertResult = $this->collection->insertOne($document, $opt);
-        return $this->lastInsertResult->getInsertedCount();
-    }
-
-    public function insertMany($document, $opt = [])
-    {
-        $this->lastInsertResult = $this->collection->insertMany($document, $opt);
-        return $this->lastInsertResult->getInsertedCount();
-    }
-
-    public function getLastInsertId()
-    {
-        if ($this->lastInsertResult instanceof InsertManyResult){
-            return (string)$this->lastInsertResult->getInsertedIds();
-        }elseif($this->lastInsertResult instanceof InsertOneResult){
-            return $this->lastInsertResult->getInsertedId();
-        }
-        return null;
-    }
-
-    /**
-     * @param $update
      * @param array $option
-     * @return \MongoDB\UpdateResult
      */
-    public function updateOne($update, $option = [])
+    public function setOpt($option = [])
     {
-        $result = $this->collection->updateOne($this->condition, $update, $option);
-        $this->initQueryCondition();
-        return $result;
+        $this->database = $this->database->withOptions($option);
     }
 
-    /**
-     * @param $updates
-     * @param array $option
-     * @return \MongoDB\UpdateResult
-     * @throws \Exception
-     */
-    public function updateMany($updates, $option = [])
+    public function listCollection()
     {
-        if (empty($this->condition)){
-            throw new \Exception();//todo
-        }
-        $result = $this->collection->updateMany($this->condition, $updates, $option);
-        $this->initQueryCondition();
-        return $result;
+        return $this->database->listCollections();
     }
-
-
 
 }

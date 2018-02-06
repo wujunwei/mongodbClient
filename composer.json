@@ -1,5 +1,11 @@
 {
     "require": {
         "mongodb/mongodb": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shein\\":"./src",
+            "Test\\":"./test"
+        }
     }
 }

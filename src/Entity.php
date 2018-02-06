@@ -28,9 +28,6 @@ class Entity implements Persistable
      */
     public function bsonSerialize()
     {
-        if (!property_exists($this, '_id')){
-            $this->_id = new ObjectId();
-        }
         return get_object_vars($this);
     }
 
@@ -47,5 +44,20 @@ class Entity implements Persistable
         foreach($data as $key => $value){
             $this->$key = $value;
         }
+        if (!property_exists($this, '_id')){
+            $this->_id = new ObjectId();
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function convert()
+    {
+        $vars = $this->bsonSerialize();
+        if (isset($vars['__pclass'])){
+            unset($vars['__pclass']);
+        }
+        return $vars;
     }
 }
