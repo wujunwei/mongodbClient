@@ -10,15 +10,12 @@ namespace Shein;
 
 
 use MongoDB\DeleteResult;
-use MongoDB\InsertOneResult;
 use MongoDB\UpdateResult;
+use phpDocumentor\Reflection\DocBlockFactory;
 
 class EntityManage implements EntityHandle
 {
-    /**
-     * @var Entity
-     */
-    private $unit = null;
+    const TABLE_TAG = 'table';
     /**
      * @var MongoDBClient
      */
@@ -34,50 +31,62 @@ class EntityManage implements EntityHandle
      */
     public function find(Entity $entity)
     {
-
+        $collection = $this->loadCollection($entity);
+        return $collection->setCondition($entity->convert())->findAll();
     }
 
     /**
      * @param Entity $entity
-     * @return bool
+     * @return DeleteResult
+     * @throws \Exception
+     * @throws \ReflectionException
      */
     public function remove(Entity $entity)
     {
-        if (!is_null($this->unit)){
-            return false;
-        }
-        $this->unit = $entity;
-        return true;
+        $collection = $this->loadCollection($entity);
+        return $collection->where('_id', $entity->_id)->drop();
     }
 
     /**
      * @param Entity $entity
-     * @return bool
+     * @return UpdateResult
      */
     public function merge(Entity $entity)
     {
-        // TODO: Implement merge() method.
+        $collection = $this->loadCollection($entity);
+        return $collection->where('_id', $entity->_id)->updateOne(['$set' => $entity]);
     }
 
     /**
      * @param Entity $entity
-     * @return bool
+     * @return int
      */
     public function persist(Entity $entity)
     {
-        // TODO: Implement persist() method.
+        return $this->loadCollection($entity)->insertOne($entity);
     }
 
     /**
-     * @return DeleteResult|InsertOneResult|UpdateResult
+     * @param $class
+     * @return Connection
+     * @throws \Exception
+     * @throws \ReflectionException
      */
-    public function flush()
+    private function loadCollection($class)
     {
-        // TODO: Implement flush() method.
+        $reflect = new \ReflectionClass($class);
+        $document = $reflect->getDocComment();
+        $doc = DocBlockFactory::createInstance()->create($document);
+        if (!$doc->hasTag(self::TABLE_TAG)){
+            throw new \Exception();//todo
+        }
+        $tags = $doc->getTagsByName(self::TABLE_TAG);
+        $collect = (string)array_shift($tags);
+        return $this->client->getCollection($collect);
     }
 
-    private function checkID()
+    public function getClient()
     {
-
+        return $this->client;
     }
 }

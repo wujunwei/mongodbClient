@@ -18,9 +18,9 @@ use MongoDB\BSON\Persistable;
 class Entity implements Persistable
 {
 
-    public function __construct()
+    public function __construct($_id = null)
     {
-        $this->_id = new ObjectId();
+        $this->_id = new ObjectId($_id);
     }
 
     /**
@@ -59,6 +59,10 @@ class Entity implements Persistable
         $vars = $this->bsonSerialize();
         if (isset($vars['__pclass'])){
             unset($vars['__pclass']);
+        }
+
+        if (isset($vars['_id'])){
+            unset($vars['_id']);
         }
         return $vars;
     }

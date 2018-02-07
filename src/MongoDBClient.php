@@ -45,7 +45,7 @@ class MongoDBClient
 
     /**
      * @param string $collection
-     * @return null|Connection
+     * @return Connection
      */
     public function getCollection($collection = '')
     {
@@ -69,6 +69,9 @@ class MongoDBClient
         $this->database = $this->database->withOptions($option);
     }
 
+    /**
+     * @return \MongoDB\Model\CollectionInfoIterator
+     */
     public function listCollection()
     {
         return $this->database->listCollections();

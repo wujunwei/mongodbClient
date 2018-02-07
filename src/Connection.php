@@ -70,6 +70,16 @@ class Connection
         return $this;
     }
 
+    /**
+     * @param array $condition
+     * @return Connection
+     */
+    public function setCondition($condition = [])
+    {
+        $this->condition = $condition;
+        return $this;
+    }
+
     private function initQueryCondition()
     {
         $this->condition = [];
@@ -95,16 +105,26 @@ class Connection
         $this->initQueryCondition();
         return $result;
     }
-//todo 将所有操作opt数组做成配置
+
+    /**
+     * @param $document
+     * @param array $opt
+     * @return int
+     */
     public function insertOne($document, $opt = [])
     {
         $this->lastInsertResult = $this->collection->insertOne($document, $opt);
         return $this->lastInsertResult->getInsertedCount();
     }
 
-    public function insertMany($document, $opt = [])
+    /**
+     * @param $documents
+     * @param array $opt
+     * @return int
+     */
+    public function insertMany($documents, $opt = [])
     {
-        $this->lastInsertResult = $this->collection->insertMany($document, $opt);
+        $this->lastInsertResult = $this->collection->insertMany($documents, $opt);
         return $this->lastInsertResult->getInsertedCount();
     }
 
@@ -126,6 +146,16 @@ class Connection
     public function updateOne($update, $option = [])
     {
         $result = $this->collection->updateOne($this->condition, $update, $option);
+        $this->initQueryCondition();
+        return $result;
+    }
+
+    public function drop()
+    {
+        if (!isset($this->condition['_id'])){
+            throw new \Exception();//todo
+        }
+        $result = $this->collection->deleteOne($this->condition);
         $this->initQueryCondition();
         return $result;
     }

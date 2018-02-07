@@ -23,24 +23,19 @@ interface EntityHandle
 
     /**
      * @param Entity $entity
-     * @return bool
+     * @return DeleteResult
      */
     public function remove(Entity $entity);
 
     /**
      * @param Entity $entity
-     * @return bool
+     * @return UpdateResult
      */
     public function merge(Entity $entity);
 
     /**
      * @param Entity $entity
-     * @return bool
+     * @return InsertOneResult
      */
     public function persist(Entity $entity);
-
-    /**
-     * @return DeleteResult|InsertOneResult|UpdateResult
-     */
-    public function flush();
 }

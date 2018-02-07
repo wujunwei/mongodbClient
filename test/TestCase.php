@@ -11,10 +11,13 @@ namespace Test;
 
 use Shein\Entity;
 
+/**
+ * Class TestCase
+ * @table test
+ * @table test
+ * @package Test
+ */
 class TestCase extends Entity
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
+
 }

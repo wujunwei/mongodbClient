@@ -9,12 +9,13 @@
 
 require "./vendor/autoload.php";
 
-$test = new \Test\TestCase();
-
-$test->bsonUnserialize(['rew' => 321, 'fda' => new \Shein\Entity()]);
+$test = new \Test\TestCase("5a7a980dbf2afb1e7c003aa1");
+$test->bsonUnserialize(['rew' => 3212]);
 $client = new \Shein\MongoDBClient('mongodb://127.0.0.1:27017/', 'test', ['heartbeatFrequencyMS'=>2000, 'readPreference'=>'primaryPreferred',], ['typeMap' => ['root' => \Shein\Entity::class]]);
-$client->getCollection('test')->insertOne($test);
-print_r($client->getCollection('test')->findAll());
+$em = new \Shein\EntityManage($client);
+var_dump($em->merge($test));
+//$client->getCollection('test')->insertOne($test);
+//print_r($client->getCollection('test')->findAll());
 
 //foreach ($client->listCollection() as $collection){
 //    var_dump($collection);
