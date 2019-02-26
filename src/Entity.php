@@ -15,7 +15,7 @@ use MongoDB\BSON\Persistable;
 /**
  * @property ObjectId _id
  */
-class Entity implements Persistable
+abstract class Entity  implements Persistable
 {
 
     public function __construct($_id = null)
@@ -33,37 +33,18 @@ class Entity implements Persistable
      */
     public function bsonSerialize()
     {
-        return get_object_vars($this);
-    }
-
-
-    /**
-     * Constructs the object from a BSON array or document
-     * Called during unserialization of the object from BSON.
-     * The properties of the BSON array or document will be passed to the method as an array.
-     * @link http://php.net/manual/en/mongodb-bson-unserializable.bsonunserialize.php
-     * @param array $data Properties within the BSON array or document.
-     */
-    public function bsonUnserialize(array $data)
-    {
-        foreach($data as $key => $value){
-            $this->$key = $value;
+        $arr = $this->convert();
+        if (!isset($arr['_id'])){
+            $arr['_id'] = $this->_id;
         }
+        return $arr;
     }
 
+
     /**
+     *
      * @return array
      */
-    public function convert()
-    {
-        $vars = $this->bsonSerialize();
-        if (isset($vars['__pclass'])){
-            unset($vars['__pclass']);
-        }
+    abstract public function convert();
 
-        if (isset($vars['_id'])){
-            unset($vars['_id']);
-        }
-        return $vars;
-    }
 }

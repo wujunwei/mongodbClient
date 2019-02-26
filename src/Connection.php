@@ -17,6 +17,7 @@ class Connection
     const DESC = -1;
     const ASC = 1;
 
+    const DELETE_LIMIT = 150;
     /**
      * @var Collection
      */
@@ -35,12 +36,16 @@ class Connection
     }
 
     /**
-     * @param string $field
+     * @param string|array $field
      * @param int $order
      * @return $this
      */
     public function orderBy($field = '', $order = self::DESC){
-        $this->queryOption['sort'] = [$field => $order];
+        if(is_array($field)){
+            $this->queryOption['sort'] = $field;
+        }else{
+            $this->queryOption['sort'] = [$field => $order];
+        }
         return $this;
     }
 
@@ -87,20 +92,28 @@ class Connection
     }
 
     /**
+     * @param array $field
      * @return array
      */
-    public function findAll()
+    public function findAll($field = [])
     {
+        if (!empty($field)){
+            $this->queryOption += ['projection' => $field];
+        }
         $result = $this->collection->find($this->condition, $this->queryOption);
         $this->initQueryCondition();
         return $result->toArray();
     }
 
     /**
+     * @param array $field
      * @return array|Entity
      */
-    public function findOne()
+    public function findOne($field = [])
     {
+        if (!empty($field)){
+            $this->queryOption += ['projection' => $field];
+        }
         $result = $this->collection->findOne($this->condition, $this->queryOption);
         $this->initQueryCondition();
         return $result;
@@ -150,12 +163,23 @@ class Connection
         return $result;
     }
 
-    public function drop()
+    /**
+     * @return \MongoDB\DeleteResult
+     * @throws \Exception
+     */
+    public function dropOne()
     {
         if (!isset($this->condition['_id'])){
             throw new \Exception();//todo
         }
         $result = $this->collection->deleteOne($this->condition);
+        $this->initQueryCondition();
+        return $result;
+    }
+
+    public function dropMany()
+    {
+        $result = $this->collection->deleteMany($this->condition);
         $this->initQueryCondition();
         return $result;
     }
@@ -174,5 +198,20 @@ class Connection
         $result = $this->collection->updateMany($this->condition, $updates, $option);
         $this->initQueryCondition();
         return $result;
+    }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        $result = $this->collection->count($this->condition, $this->queryOption);
+        $this->initQueryCondition();
+        return $result;
+    }
+
+    public function setTypeMap($typeMap)
+    {
+        $this->queryOption['typeMap'] = $typeMap;
     }
 }

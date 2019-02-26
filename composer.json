@@ -1,7 +1,8 @@
 {
     "require": {
         "mongodb/mongodb": "1.1",
-        "phpdocumentor/reflection-docblock": "^3.3"
+        "phpdocumentor/reflection-docblock": "^3.3",
+        "ext-mongodb": "*"
     },
     "autoload": {
         "psr-4": {

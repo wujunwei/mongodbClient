@@ -47,9 +47,11 @@ class MongoDBClient
      * @param string $collection
      * @return Connection
      */
-    public function getCollection($collection = '')
+    public function getCollection($collection = null)
     {
-        $this->connection = new Connection($this->database->selectCollection($collection));
+        if (!is_null($collection)){
+            $this->connection = new Connection($this->database->selectCollection($collection));
+        }
         return $this->connection;
     }
 
@@ -62,6 +64,15 @@ class MongoDBClient
     }
 
     /**
+     * @param array $options
+     * @return \MongoDB\GridFS\Bucket
+     */
+    public function getGridFSBucket(array $options = [])
+    {
+        return $this->database->selectGridFSBucket($options);
+    }
+
+    /**
      * @param array $option
      */
     public function setOpt($option = [])
@@ -69,9 +80,6 @@ class MongoDBClient
         $this->database = $this->database->withOptions($option);
     }
 
-    /**
-     * @return \MongoDB\Model\CollectionInfoIterator
-     */
     public function listCollection()
     {
         return $this->database->listCollections();
