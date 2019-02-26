@@ -13,8 +13,10 @@ $config = [
     'connect_str' => 'mongodb://127.0.0.1:27017/test',
     'dbname'=>'test',
     'option' => [
+//        'username'=>'admin',
+//        'password'=>'test',
 //        'heartbeatFrequencyMS'=>2000,
-//        'replicaSet'=>'shein',
+//        'replicaSet'=>'test',
 //        'readPreference'=>'primaryPreferred',
     ],
 ];
