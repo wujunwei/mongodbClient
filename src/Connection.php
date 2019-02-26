@@ -213,5 +213,6 @@ class Connection
     public function setTypeMap($typeMap)
     {
         $this->queryOption['typeMap'] = $typeMap;
+        return $this;
     }
 }
