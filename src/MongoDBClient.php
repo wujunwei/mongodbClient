@@ -1,17 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2017-10-18
- * Time: 下午 4:12
- */
 
-namespace Shein;
-
+namespace FirstW;
 
 
 use MongoDB\Client;
 use MongoDB\Database;
+use MongoDB\GridFS\Bucket;
+use MongoDB\Model\CollectionInfoIterator;
 
 
 class MongoDBClient
@@ -36,7 +31,7 @@ class MongoDBClient
      */
     public function __construct($dsn, $database, $uriOptions = [], $driverOptions = [])
     {
-        if (!isset($driverOptions['typeMap'])){
+        if (!isset($driverOptions['typeMap'])) {
             $driverOptions = ['typeMap' => ['root' => 'array']];
         }
         $client = new Client($dsn, $uriOptions, $driverOptions);
@@ -47,9 +42,11 @@ class MongoDBClient
      * @param string $collection
      * @return Connection
      */
-    public function getCollection($collection = '')
+    public function getCollection($collection = null)
     {
-        $this->connection = new Connection($this->database->selectCollection($collection));
+        if (!is_null($collection)) {
+            $this->connection = new Connection($this->database->selectCollection($collection));
+        }
         return $this->connection;
     }
 
@@ -62,6 +59,15 @@ class MongoDBClient
     }
 
     /**
+     * @param array $options
+     * @return Bucket
+     */
+    public function getGridFSBucket(array $options = [])
+    {
+        return $this->database->selectGridFSBucket($options);
+    }
+
+    /**
      * @param array $option
      */
     public function setOpt($option = [])
@@ -70,7 +76,7 @@ class MongoDBClient
     }
 
     /**
-     * @return \MongoDB\Model\CollectionInfoIterator
+     * @return CollectionInfoIterator
      */
     public function listCollection()
     {

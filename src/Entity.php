@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: adam
- * Date: 2018/2/5
- * Time: 下午9:55
- */
 
-namespace Shein;
+namespace FirstW;
 
 
 use MongoDB\BSON\ObjectId;

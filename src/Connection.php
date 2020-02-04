@@ -1,16 +1,19 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2018-02-06
- * Time: 下午 12:33
- */
 
-namespace Shein;
+namespace FirstW;
+
+use Exception;
 use MongoDB\BSON\ObjectID;
+use MongoDB\BulkWriteResult;
+use MongoDB\DeleteResult;
+use MongoDB\Driver\Exception\RuntimeException as DriverRuntimeException;
+use MongoDB\Exception\InvalidArgumentException;
+use MongoDB\Exception\UnsupportedException;
 use MongoDB\InsertManyResult;
 use MongoDB\InsertOneResult;
 use MongoDB\Collection;
+use MongoDB\UpdateResult;
+use Traversable;
 
 class Connection
 {
@@ -35,12 +38,17 @@ class Connection
     }
 
     /**
-     * @param string $field
+     * @param string|array $field
      * @param int $order
      * @return $this
      */
-    public function orderBy($field = '', $order = self::DESC){
-        $this->queryOption['sort'] = [$field => $order];
+    public function orderBy($field = '', $order = self::DESC)
+    {
+        if (is_array($field)) {
+            $this->queryOption['sort'] = $field;
+        } else {
+            $this->queryOption['sort'] = [$field => $order];
+        }
         return $this;
     }
 
@@ -63,7 +71,7 @@ class Connection
      */
     public function where($field, $condition)
     {
-        if ($field === '_id' && !is_array($condition)){
+        if ($field === '_id' && !is_array($condition)) {
             $condition = new ObjectID(strval($condition));
         }
         $this->condition[$field] = $condition;
@@ -87,20 +95,28 @@ class Connection
     }
 
     /**
+     * @param array $field
      * @return array
      */
-    public function findAll()
+    public function findAll($field = [])
     {
+        if (!empty($field)) {
+            $this->queryOption += ['projection' => $field];
+        }
         $result = $this->collection->find($this->condition, $this->queryOption);
         $this->initQueryCondition();
         return $result->toArray();
     }
 
     /**
+     * @param array $field
      * @return array|Entity
      */
-    public function findOne()
+    public function findOne($field = [])
     {
+        if (!empty($field)) {
+            $this->queryOption += ['projection' => $field];
+        }
         $result = $this->collection->findOne($this->condition, $this->queryOption);
         $this->initQueryCondition();
         return $result;
@@ -130,9 +146,9 @@ class Connection
 
     public function getLastInsertId()
     {
-        if ($this->lastInsertResult instanceof InsertManyResult){
+        if ($this->lastInsertResult instanceof InsertManyResult) {
             return $this->lastInsertResult->getInsertedIds();
-        }elseif($this->lastInsertResult instanceof InsertOneResult){
+        } elseif ($this->lastInsertResult instanceof InsertOneResult) {
             return $this->lastInsertResult->getInsertedId();
         }
         return null;
@@ -141,7 +157,7 @@ class Connection
     /**
      * @param $update
      * @param array $option
-     * @return \MongoDB\UpdateResult
+     * @return UpdateResult
      */
     public function updateOne($update, $option = [])
     {
@@ -150,12 +166,23 @@ class Connection
         return $result;
     }
 
-    public function drop()
+    /**
+     * @return DeleteResult
+     * @throws Exception
+     */
+    public function dropOne()
     {
-        if (!isset($this->condition['_id'])){
-            throw new \Exception();//todo
+        if (!isset($this->condition['_id'])) {
+            throw new Exception("It 's not safe droping document without a object_id");
         }
         $result = $this->collection->deleteOne($this->condition);
+        $this->initQueryCondition();
+        return $result;
+    }
+
+    public function dropMany()
+    {
+        $result = $this->collection->deleteMany($this->condition);
         $this->initQueryCondition();
         return $result;
     }
@@ -163,16 +190,59 @@ class Connection
     /**
      * @param $updates
      * @param array $option
-     * @return \MongoDB\UpdateResult
-     * @throws \Exception
+     * @return UpdateResult
+     * @throws Exception
      */
     public function updateMany($updates, $option = [])
     {
-        if (empty($this->condition)){
-            throw new \Exception();//todo
+        if (empty($this->condition)) {
+            throw new Exception("It 's not safe updating document without conditions");
         }
         $result = $this->collection->updateMany($this->condition, $updates, $option);
         $this->initQueryCondition();
         return $result;
+    }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        $result = $this->collection->count($this->condition, $this->queryOption);
+        $this->initQueryCondition();
+        return $result;
+    }
+
+    /**
+     * @param array $pipeline
+     * @param array $options
+     * @return Traversable
+     */
+    public function aggregate(array $pipeline, array $options = [])
+    {
+        return $this->collection->aggregate($pipeline, $options);
+    }
+
+    /**
+     * Executes multiple write operations.
+     *
+     * @param array[] $operations List of write operations
+     * @param array $options Command options
+     * @return BulkWriteResult
+     *
+     * @throws UnsupportedException if options are not supported by the selected server
+     * @throws InvalidArgumentException for parameter/option parsing errors
+     * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
+     * @see BulkWrite::__construct() for supported options
+     */
+    public function bulkWrite(array $operations, array $options = [])
+    {
+        return $this->collection->bulkWrite($operations, $options);
+    }
+
+    public function setTypeMap($typeMap)
+    {
+        $this->queryOption['typeMap'] = $typeMap;
+        return $this;
     }
 }

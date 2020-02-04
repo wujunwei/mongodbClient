@@ -1,17 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: adam
- * Date: 2018/2/5
- * Time: 下午10:12
- */
 
-namespace Shein;
+namespace FirstW;
 
 
+use Exception;
 use MongoDB\DeleteResult;
 use MongoDB\UpdateResult;
 use phpDocumentor\Reflection\DocBlockFactory;
+use ReflectionClass;
+use ReflectionException;
 
 class EntityManage implements EntityHandle
 {
@@ -20,6 +17,7 @@ class EntityManage implements EntityHandle
      * @var MongoDBClient
      */
     private $client = null;
+
     public function __construct(MongoDBClient $client)
     {
         $this->client = $client;
@@ -28,6 +26,7 @@ class EntityManage implements EntityHandle
     /**
      * @param Entity $entity
      * @return Entity[]
+     * @throws ReflectionException
      */
     public function find(Entity $entity)
     {
@@ -38,18 +37,19 @@ class EntityManage implements EntityHandle
     /**
      * @param Entity $entity
      * @return DeleteResult
-     * @throws \Exception
-     * @throws \ReflectionException
+     * @throws Exception
+     * @throws ReflectionException
      */
     public function remove(Entity $entity)
     {
         $collection = $this->loadCollection($entity);
-        return $collection->where('_id', $entity->_id)->drop();
+        return $collection->where('_id', $entity->_id)->dropOne();
     }
 
     /**
      * @param Entity $entity
      * @return UpdateResult
+     * @throws ReflectionException
      */
     public function merge(Entity $entity)
     {
@@ -60,6 +60,7 @@ class EntityManage implements EntityHandle
     /**
      * @param Entity $entity
      * @return int
+     * @throws ReflectionException
      */
     public function persist(Entity $entity)
     {
@@ -69,16 +70,16 @@ class EntityManage implements EntityHandle
     /**
      * @param $class
      * @return Connection
-     * @throws \Exception
-     * @throws \ReflectionException
+     * @throws Exception
+     * @throws ReflectionException
      */
     private function loadCollection($class)
     {
-        $reflect = new \ReflectionClass($class);
+        $reflect = new ReflectionClass($class);
         $document = $reflect->getDocComment();
         $doc = DocBlockFactory::createInstance()->create($document);
-        if (!$doc->hasTag(self::TABLE_TAG)){
-            throw new \Exception();//todo
+        if (!$doc->hasTag(self::TABLE_TAG)) {
+            throw new Exception("don't find the table tag");
         }
         $tags = $doc->getTagsByName(self::TABLE_TAG);
         $collect = (string)array_shift($tags);
