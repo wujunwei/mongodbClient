@@ -78,12 +78,16 @@ class EntityManage implements EntityHandle
         $reflect = new ReflectionClass($class);
         $document = $reflect->getDocComment();
         $doc = DocBlockFactory::createInstance()->create($document);
+        if (!$document){
+            throw new Exception('Table tag is not exist !');
+        }
         if (!$doc->hasTag(self::TABLE_TAG)) {
-            throw new Exception("don't find the table tag");
+            throw new Exception("Can't find the table tag");
         }
         $tags = $doc->getTagsByName(self::TABLE_TAG);
         $collect = (string)array_shift($tags);
-        return $this->client->getCollection($collect);
+        return $this->client->getCollection($collect)->setTypeMap(['document' => get_class($class)]);
+
     }
 
     public function getClient()
