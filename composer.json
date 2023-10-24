@@ -1,6 +1,6 @@
 {
     "require": {
-        "mongodb/mongodb": "1.1",
+        "mongodb/mongodb": "1.10.0",
         "phpdocumentor/reflection-docblock": "^3.3",
         "ext-mongodb": "*"
     },
